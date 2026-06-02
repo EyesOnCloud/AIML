@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pvc-helper
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+    command: ["sleep","3600"]
+    volumeMounts:
+    - name: model-storage
+      mountPath: /model
+  volumes:
+  - name: model-storage
+    persistentVolumeClaim:
+      claimName: ai-model-pvc
