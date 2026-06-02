@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-app
+  namespace: chat-app
+  labels:
+    app: chat-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-app
+  template:
+    metadata:
+      labels:
+        app: chat-app
+    spec:
+      containers:
+
+      # ── Main Application Container ──────────────────────────────
+      - name: chat-app
+        image: eyesoncloud/chat-app:v6
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: LOG_DIR
+          value: /var/log/app
+        - name: LOG_FILE
+          value: /var/log/app/chat-app.log
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: app-logs
+          mountPath: /var/log/app
+
+      # ── Sidecar Fluentd Container ───────────────────────────────
+      - name: fluentd-sidecar
+        image: quay.io/fluentd_elasticsearch/fluentd:v3.3.0
+        env:
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 200Mi
+        volumeMounts:
+        - name: app-logs
+          mountPath: /var/log/app
+          readOnly: true
+        - name: fluentd-config
+          mountPath: /etc/fluent/
+        - name: fluentd-pos
+          mountPath: /var/log/fluentd
+        - name: fluentd-buffer
+          mountPath: /var/log/fluentd-buffers
+
+      # ── Volumes ─────────────────────────────────────────────────
+      volumes:
+      - name: app-logs
+        emptyDir: {}
+      - name: fluentd-config
+        configMap:
+          name: fluentd-sidecar-config
+      - name: fluentd-pos
+        emptyDir: {}
+      - name: fluentd-buffer
+        emptyDir: {}
