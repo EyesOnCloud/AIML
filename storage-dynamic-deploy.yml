@@ -50,7 +50,7 @@ spec:
           periodSeconds: 10
           failureThreshold: 3
       - name: risk-api
-        image: eyesoncloud/risk-api:ve1
+        image: eyesoncloud/risk-api:1
         ports:
         - containerPort: 8001
         env:
