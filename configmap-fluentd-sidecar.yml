@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-sidecar-config
+  namespace: chat-app
+
+data:
+  fluent.conf: |
+    <source>
+      @type tail
+      path /var/log/app/*.log
+      pos_file /var/log/fluentd/app.log.pos
+      tag chat-app
+      read_from_head true
+
+      <parse>
+        @type regexp
+        expression /^(?<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\s*\|\s*intent=(?<intent>[^|]+)\s*\|\s*confidence=(?<confidence>[^|]+)\s*\|\s*risk=(?<risk>[^|]+)\s*\|\s*model=(?<model>[^|]+)\s*\|\s*message=(?<message>.*)$/
+        time_format %Y-%m-%d %H:%M:%S.%N
+      </parse>
+    </source>
+
+    <filter chat-app>
+      @type record_transformer
+      enable_ruby true
+      <record>
+        app_name chat-app
+        environment production
+        namespace chat-app
+        pod_name ${hostname}
+        log_time ${record["time"]}
+      </record>
+    </filter>
+
+    <match chat-app>
+      @type elasticsearch
+      host elasticsearch-logging.efklog.svc.cluster.local
+      port 9200
+
+      logstash_format true
+      logstash_prefix chat-app
+
+      # IMPORTANT: tell ES to use your parsed time
+      time_key time
+      time_key_format %Y-%m-%d %H:%M:%S.%N
+
+      include_tag_key true
+      tag_key @log_name
+
+      <buffer>
+        @type file
+        path /var/log/fluentd-buffers/chat-app.buffer
+        flush_interval 5s
+        retry_forever true
+        chunk_limit_size 2M
+      </buffer>
+    </match>
