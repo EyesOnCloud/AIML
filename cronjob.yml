@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ollama-kb-updater
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: updater
+            image: python:3.11
+            command:
+            - sh
+            - -c
+            - |
+              pip install requests -q
+              python <<EOF
+              import json
+              import requests
+              KB="/model/knowledge_base.json"
+              UNANSWERED="/model/unanswered_questions.json"
+              try:
+                  kb=json.load(open(KB))
+              except:
+                  kb=[]
+              try:
+                  questions=json.load(open(UNANSWERED))
+              except:
+                  questions=[]
+              for item in questions:
+                  q=item["question"]
+                  print("Processing:", q)
+                  response=requests.post(
+                      "http://ollama:11434/api/generate",
+                      json={
+                          "model":"llama3",
+                          "prompt":q,
+                          "stream":False
+                      }
+                  )
+                  answer=response.json()["response"]
+                  kb.append({
+                      "question":q,
+                      "answer":answer,
+                      "source":"ollama"
+                  })
+              json.dump(
+                  kb,
+                  open(KB,"w"),
+                  indent=2
+              )
+              json.dump(
+                  [],
+                  open(UNANSWERED,"w")
+              )
+              print("Knowledge base updated")
+              EOF
+            volumeMounts:
+            - name: model-storage
+              mountPath: /model
+          volumes:
+          - name: model-storage
+            persistentVolumeClaim:
+              claimName: ai-model-pvc
