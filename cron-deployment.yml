@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-app
+  template:
+    metadata:
+      labels:
+        app: ai-app
+    spec:
+      containers:
+      - name: chat-api
+        image: hussain2844/chat:v5
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: BOT_NAME
+          value: "BankBot"
+        - name: APP_ENV
+          value: "production"
+        - name: MODEL_DIR
+          value: "/model"
+        - name: LOG_DIR
+          value: "/shared/logs"
+        - name: RISK_API_URL
+          value: "http://localhost:8001"
+        volumeMounts:
+        - name: model-storage
+          mountPath: /model
+        - name: shared-logs
+          mountPath: /shared/logs
+      - name: risk-api
+        image: hussain2844/risk-api:v3
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8001
+        env:
+        - name: MODEL_DIR
+          value: "/model"
+        - name: LOG_DIR
+          value: "/shared/logs"
+        volumeMounts:
+        - name: model-storage
+          mountPath: /model
+        - name: shared-logs
+          mountPath: /shared/logs
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: ai-model-pvc
+      - name: shared-logs
+        emptyDir: {}
