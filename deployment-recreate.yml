@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-deployment
+spec:
+  replicas: 1
+  strategy:
+    type: recreate
+  selector:
+    matchLabels:
+      app: chat-api
+  template:
+    metadata:
+      labels:
+        app: chat-api
+        version: v1
+    spec:
+      containers:
+      - name: chat-api
+        image: eyesoncloud/chat:v1
