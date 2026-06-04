@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: risk-api-init
+spec:
+  initContainers:
+  - name: model-downloader
+    image: python:3.11-slim
+    command: ["sh", "-c"]
+    args:
+    - |
+      echo "Checking for model file..."
+      pip install scikit-learn -q
+      python3 -c "
+      import pickle
+      from sklearn.linear_model import LogisticRegression
+      import numpy as np
+
+      print('Training a basic risk model...')
+      # Simulate training
+      X = np.array([[1,0],[0,1],[1,1],[0,0],[1,0],[0,1]])
+      y = np.array([1, 0, 1, 0, 1, 0])
+      model = LogisticRegression()
+      model.fit(X, y)
+
+      import os
+      os.makedirs('/model', exist_ok=True)
+      with open('/model/risk_model.pkl', 'wb') as f:
+          pickle.dump(model, f)
+
+      print('Model saved to /model/risk_model.pkl')
+      print('Init complete. Handing off to Risk API.')
+      "
+    volumeMounts:
+    - name: model-volume
+      mountPath: /model
+
+  - name: config-validator
+    image: busybox
+    command: ["sh", "-c"]
+    args:
+    - |
+      echo "Validating model file exists..."
+      if [ -f /model/risk_model.pkl ]; then
+        echo "model.pkl found, size: $(ls -lh /model/risk_model.pkl | awk '{print $5}')"
+      else
+        echo "model.pkl not found!"
+        exit 1
+      fi
+    volumeMounts:
+    - name: model-volume
+      mountPath: /model
+
+  containers:
+  - name: risk-api
+    image: python:3.11-slim
+    command: ["sh", "-c"]
+    args:
+    - |
+      mkdir -p /app
+      pip install fastapi uvicorn scikit-learn -q
+      cat <<EOF > /app/risk_serve.py
+      from fastapi import FastAPI
+      import pickle, numpy as np, os
+      app = FastAPI()
+      with open("/model/risk_model.pkl", "rb") as f:
+          model = pickle.load(f)
+      print("Risk model loaded successfully")
+      @app.get("/risk")
+      def score(message: str = ""):
+          keywords = ["lost", "stolen", "fraud", "unauthorized"]
+          feature_fraud = 1 if any(k in message.lower() for k in keywords) else 0
+          feature_len = 1 if len(message) > 20 else 0
+          X = np.array([[feature_fraud, feature_len]])
+          prob = model.predict_proba(X)[0][1]
+          score = round(float(prob), 2)
+          return {
+              "risk_score": score,
+              "flag": "high_risk" if score > 0.5 else "low_risk",
+              "message_analyzed": message
+          }
+      @app.get("/health")
+      def health():
+          return {"status": "ok", "model": "loaded"}
+      EOF
+      cd /app && uvicorn risk_serve:app --host 0.0.0.0 --port 8001
+    ports:
+    - containerPort: 8001
+    volumeMounts:
+    - name: model-volume
+      mountPath: /model
+  volumes:
+  - name: model-volume
+    emptyDir: {}
