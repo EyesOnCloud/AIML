@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: node-critical-agent
+  namespace: kube-system
+spec:
+  containers:
+  - name: agent
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - |
+      echo "Node critical agent started at $(date)"
+      while true; do
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] Node $(hostname) is alive | CPU: $(top -bn1 | grep Cpu | awk '{print $2}'), Mem: $(free -m | awk '/Mem:/ {print $3 "/" $2 " MB"}')"
+        sleep 30
+      done
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+  tolerations:
+  - operator: "Exists"
+  priorityClassName: system-node-critical
