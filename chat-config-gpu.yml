@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chat-config
+  namespace: bankbot
+data:
+  BOT_NAME: "BankBot"
+  APP_ENV: "production"
+  RISK_API_URL: "http://risk-api:8001"
+  DATABASE_URL: "postgresql://bankbot:BankBot@123@postgres:5432/bankbot"
