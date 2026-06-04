@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: risk-pod
+  labels:
+    app: risk-api
+spec:
+  containers:
+  - name: risk-api
+    image: python:3.11-slim
+    command: ["sh", "-c"]
+    args:
+    - |
+      pip install fastapi uvicorn -q
+      mkdir -p /app
+      cat <<EOF > /app/risk.py
+      from fastapi import FastAPI
+      import random
+      app = FastAPI()
+      @app.get("/risk")
+      def score(message: str = ""):
+          keywords = ["lost", "stolen", "fraud", "unauthorized"]
+          score = round(min(0.95, sum(0.2 for k in keywords if k in message.lower()) + random.uniform(0.1, 0.3)), 2)
+          flag = "high_risk" if score > 0.6 else "low_risk"
+          return {"risk_score": score, "flag": flag}
+      @app.get("/health")
+      def health():
+          return {"status": "ok"}
+      EOF
+      cd /app && uvicorn risk:app --host 0.0.0.0 --port 8001
+    ports:
+    - containerPort: 8001
