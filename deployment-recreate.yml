@@ -5,7 +5,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: recreate
+    type: Recreate
   selector:
     matchLabels:
       app: chat-api
