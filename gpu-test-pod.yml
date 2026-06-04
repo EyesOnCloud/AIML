@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-test
+  namespace: default
+spec:
+  restartPolicy: Never
+  nodeSelector:
+    kubernetes.io/hostname: eoc-node3
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  containers:
+    - name: gpu-test
+      image: nvidia/cuda:12.2.0-devel-ubuntu22.04
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          echo "=== GPU Device Files ==="
+          ls -la /dev/nvidia*
+          echo ""
+          echo "=== nvidia-smi ==="
+          nvidia-smi
+      resources:
+        limits:
+          nvidia.com/gpu: "1"
+        requests:
+          nvidia.com/gpu: "1"
