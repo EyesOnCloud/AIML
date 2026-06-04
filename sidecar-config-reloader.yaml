@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: chat-sidecar-pod
+spec:
+  containers:
+  #  Main Application Container
+  - name: chat-api
+    image: python:3.11-slim
+    command: ["sh", "-c"]
+    args:
+    - |
+      mkdir -p /app
+      mkdir -p /config
+      pip install fastapi uvicorn -q
+      cat <<EOF > /app/main.py
+      from fastapi import FastAPI
+      import os
+      app = FastAPI()
+      def get_prompt():
+          try:
+              with open("/config/prompt.txt") as f:
+                  return f.read().strip()
+          except:
+              return "You are a helpful support assistant."
+      @app.get("/chat")
+      def chat(message: str = "hello"):
+          prompt = get_prompt()
+          msg = message.lower()
+          # Simple decision logic (simulating AI behavior)
+          if any(k in msg for k in ["lost", "stolen", "fraud", "unauthorized"]):
+              reply = "Please block your card immediately and contact customer support."
+          elif "balance" in msg:
+              reply = "You can check your balance via mobile app or net banking."
+          elif "hours" in msg:
+              reply = "Our support is available 24/7."
+          else:
+              reply = "Our support team will assist you shortly."
+          return {
+              "prompt_used": prompt,
+              "reply": reply
+          }
+      @app.get("/health")
+      def health():
+          return {"status": "ok"}
+      EOF
+      cd /app && uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+    - containerPort: 8000
+    volumeMounts:
+    - name: config-volume
+      mountPath: /config
+  #  Sidecar Container (Config Reloader)
+  - name: config-reloader
+    image: busybox
+    command: ["sh", "-c"]
+    args:
+    - |
+      mkdir -p /config
+      echo "You are a banking support assistant. Be concise." > /config/prompt.txt
+      echo "Config initialized"
+      while true; do
+        sleep 20
+        echo "You are an upgraded support assistant v2. Be empathetic and detailed." > /config/prompt.txt
+        echo "Config updated at $(date)"
+        sleep 20
+        echo "You are a banking support assistant. Be concise." > /config/prompt.txt
+        echo "Config reset at $(date)"
+      done
+    volumeMounts:
+    - name: config-volume
+      mountPath: /config
+  #  Shared Volume
+  volumes:
+  - name: config-volume
+    emptyDir: {}
