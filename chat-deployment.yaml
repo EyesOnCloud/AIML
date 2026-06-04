@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-deployment
+  labels:
+    app: chat-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: chat-api
+  template:
+    metadata:
+      labels:
+        app: chat-api
+    spec:
+      containers:
+      - name: chat-api
+        image: python:3.11-slim
+        command: ["sh", "-c"]
+        args:
+        - |
+          pip install fastapi uvicorn -q
+          mkdir -p /app
+          cat <<EOF > /app/main.py
+          from fastapi import FastAPI
+          import socket
+
+          app = FastAPI()
+
+          @app.get("/chat")
+          def chat(message: str = "hello"):
+              return {
+                  "reply": f"Support bot received: {message}",
+                  "version": "v1",
+                  "served_by": socket.gethostname()
+              }
+
+          @app.get("/health")
+          def health():
+              return {"status": "ok", "version": "v1"}
+          EOF
+          cd /app && uvicorn main:app --host 0.0.0.0 --port 8000
+        ports:
+        - containerPort: 8000
