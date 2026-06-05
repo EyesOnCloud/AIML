@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: risk-deployment
+  namespace: ai-production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: risk-api
+  template:
+    metadata:
+      labels:
+        app: risk-api
+    spec:
+      containers:
+      - name: risk-api
+        image: eyesoncloud/risk-api:gpu
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8001
+        envFrom:
+        - configMapRef:
+            name: chat-config
+        volumeMounts:
+        - name: logs
+          mountPath: /shared/logs
+        - name: model
+          mountPath: /model
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: model
+        emptyDir: {}
