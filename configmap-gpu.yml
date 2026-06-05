@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chat-config
+  namespace: ai-production
+data:
+  BOT_NAME:      "BankBot"
+  APP_ENV:       "production"
+  LOG_DIR:       "/shared/logs"
+  MODEL_DIR:     "/model"
+  RISK_API_URL:  "http://risk-service:8001"
+  OLLAMA_URL:    "http://bankbot-llm-ollama:11434"
+  OLLAMA_MODEL:  "qwen2.5:0.5b"
+
+  SYSTEM_PROMPT: >
+    You are BankBot, a professional banking information assistant.
+    Answer only generic banking education questions.
+    Never handle fraud, blocked accounts, or sensitive operations.
+    Refer those to the nearest branch.
