@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: chat-api
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: chat-api
+        version: v1
+    spec:
+      containers:
+      - name: chat-api
+        image: eyesoncloud/chat:v1
