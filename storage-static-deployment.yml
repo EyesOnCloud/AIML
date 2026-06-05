@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-app
+  labels:
+    app: ai-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-app
+  template:
+    metadata:
+      labels:
+        app: ai-app
+    spec:
+      containers:
+
+      - name: chat-api
+        image: eyesoncloud/chat:v3
+        ports:
+        - containerPort: 8000
+        env:
+        - name: RISK_API_URL
+          value: "http://localhost:8001"
+        - name: LOG_DIR
+          value: "/shared/logs"
+        - name: MODEL_DIR
+          value: "/model"
+        - name: BOT_NAME
+          value: "BankBot"
+        - name: APP_ENV
+          value: "production"
+        volumeMounts:
+        - name: shared-logs
+          mountPath: /shared/logs
+        - name: model-storage
+          mountPath: /model
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          failureThreshold: 3
+
+      - name: risk-api
+        image: eyesoncloud/risk-api:v1
+        ports:
+        - containerPort: 8001
+        env:
+        - name: LOG_DIR
+          value: "/shared/logs"
+        - name: MODEL_DIR
+          value: "/model"
+        - name: APP_ENV
+          value: "production"
+        volumeMounts:
+        - name: shared-logs
+          mountPath: /shared/logs
+        - name: model-storage
+          mountPath: /model
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          failureThreshold: 3
+
+      volumes:
+      - name: shared-logs
+        emptyDir: {}
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: ai-model-pvc
