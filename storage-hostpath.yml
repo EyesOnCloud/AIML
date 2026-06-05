@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-app
+  labels:
+    app: ai-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-app
+  template:
+    metadata:
+      labels:
+        app: ai-app
+    spec:
+      nodeName: eoc-node1
+      containers:
+      - name: chat-api
+        image: eyesoncloud/chat-api:v1
+        ports:
+        - containerPort: 8000
+        env:
+        - name: RISK_API_URL
+          value: "http://localhost:8001"
+        - name: LOG_DIR
+          value: "/shared/logs"
+        - name: MODEL_DIR
+          value: "/model"
+        - name: BOT_NAME
+          value: "BankBot"
+        - name: APP_ENV
+          value: "production"
+        volumeMounts:
+        - name: shared-logs
+          mountPath: /shared/logs
+        - name: model-storage
+          mountPath: /model
+      - name: risk-api
+        image: eyesoncloud/risk-api:v1
+        ports:
+        - containerPort: 8001
+        env:
+        - name: LOG_DIR
+          value: "/shared/logs"
+        - name: MODEL_DIR
+          value: "/model"
+        - name: APP_ENV
+          value: "production"
+        volumeMounts:
+        - name: shared-logs
+          mountPath: /shared/logs
+        - name: model-storage
+          mountPath: /model
+      volumes:
+      - name: shared-logs
+        hostPath:
+          path: /data/logs
+          type: DirectoryOrCreate
+      - name: model-storage
+        hostPath:
+          path: /data/models
+          type: DirectoryOrCreate
