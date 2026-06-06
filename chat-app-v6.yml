@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-agent-v6
+  namespace: banking-app
+  labels:
+    app: banking-agent
+    version: v6
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: banking-agent
+      version: v6
+  template:
+    metadata:
+      labels:
+        app: banking-agent
+        version: v6
+    spec:
+      containers:
+      - name: agent
+        image: eyesoncloud/chat-app:v6
+        ports:
+        - containerPort: 8000
+        env:
+        - name: RISK_API_URL
+          value: "http://risk-api.banking-app.svc.cluster.local:8001"
+        - name: BOT_NAME
+          value: "BankBot-v6"
+        - name: APP_ENV
+          value: "production"
+        - name: LOG_DIR
+          value: "/tmp/logs"
+        - name: MODEL_DIR
+          value: "/tmp/model"
+        - name: CONFIDENCE_THRESHOLD
+          value: "0.4"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-agent-v6
+  namespace: banking-app
+spec:
+  selector:
+    app: banking-agent
+    version: v6
+  ports:
+  - port: 8081
+    targetPort: 8000
+  type: ClusterIP
