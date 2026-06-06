@@ -20,7 +20,7 @@ spec:
         - containerPort: 8001
         readinessProbe:
           httpGet:
-            path: /ready
+            path: /health
             port: 8001
           initialDelaySeconds: 5
           periodSeconds: 5
