@@ -1,11 +1,11 @@
 import kfp
 from kfp import dsl
 from kfp.dsl import component, Output, Artifact, Input
-import requests
 
 # ── COMPONENT 1: Test v4 Baseline ────────────────────────────────────────────
 @component(
     base_image="eyesoncloud/pipeline-runtime:latest",
+    pip_index_urls=["https://pypi.org/simple"],
 )
 def test_v4_baseline(
     v4_service_url: str,
@@ -42,7 +42,7 @@ def test_v4_baseline(
             results.append({
                 "message": msg,
                 "intent": resp.get("intent"),
-                "confidence": resp.get("confidence", 0.0),  # v4 returns None
+                "confidence": resp.get("confidence", 0.0),
                 "bot": resp.get("bot")
             })
         except Exception as e:
@@ -60,6 +60,7 @@ def test_v4_baseline(
         json.dump(metrics, f, indent=2)
 
     print(f"V4 baseline: avg_confidence={metrics['avg_confidence']:.3f}")
+
 
 # ── COMPONENT 2: Test v6 New Feature ─────────────────────────────────────────
 @component(
@@ -117,7 +118,6 @@ def test_v6_features(
         "results": results
     }
 
-    # Also fetch /metrics endpoint from v6
     try:
         v6_metrics = requests.get(f"{v6_service_url}/metrics", timeout=3).json()
         metrics["v6_internal_metrics"] = v6_metrics
@@ -130,6 +130,7 @@ def test_v6_features(
     print(f"V6 feature test: avg_confidence={metrics['avg_confidence']:.3f}, "
           f"low_conf_rate={metrics['low_confidence_rate']:.3f}")
 
+
 # ── COMPONENT 3: Evaluate — Pass/Fail Decision ────────────────────────────────
 @component(
     base_image="eyesoncloud/pipeline-runtime:latest"
@@ -141,13 +142,6 @@ def evaluate_and_decide(
     promote_threshold_low_conf_rate: float,
     decision: Output[Artifact]
 ):
-    """
-    Compares v4 and v6 metrics.
-    Promotes v6 if:
-      - avg_confidence > promote_threshold_confidence
-      - low_confidence_rate < promote_threshold_low_conf_rate
-    Otherwise triggers rollback.
-    """
     import json
 
     with open(v4_metrics.path) as f:
@@ -155,7 +149,7 @@ def evaluate_and_decide(
     with open(v6_metrics.path) as f:
         v6 = json.load(f)
 
-    v6_avg_conf = v6.get("avg_confidence", 0.0)
+    v6_avg_conf      = v6.get("avg_confidence", 0.0)
     v6_low_conf_rate = v6.get("low_confidence_rate", 1.0)
 
     passed = (
@@ -164,12 +158,12 @@ def evaluate_and_decide(
     )
 
     result = {
-        "v4_avg_confidence": v4.get("avg_confidence", 0.0),
-        "v6_avg_confidence": v6_avg_conf,
+        "v4_avg_confidence":    v4.get("avg_confidence", 0.0),
+        "v6_avg_confidence":    v6_avg_conf,
         "v6_low_confidence_rate": v6_low_conf_rate,
         "thresholds": {
-            "min_avg_confidence": promote_threshold_confidence,
-            "max_low_conf_rate": promote_threshold_low_conf_rate
+            "min_avg_confidence":  promote_threshold_confidence,
+            "max_low_conf_rate":   promote_threshold_low_conf_rate
         },
         "decision": "PROMOTE" if passed else "ROLLBACK",
         "reason": (
@@ -188,33 +182,42 @@ def evaluate_and_decide(
     print(f"REASON:   {result['reason']}")
     print(f"{'='*50}\n")
 
+
 # ── COMPONENT 4: Scale v6 (Promote) ──────────────────────────────────────────
+# Uses python:3.11-slim — has python3 + pip works cleanly with --break-system-packages
 @component(
-    base_image="bitnami/kubectl:latest"
+    base_image="python:3.11-slim",
+    packages_to_install=["kubernetes==29.0.0"],
 )
 def promote_v6(decision: Input[Artifact]):
     """
     Reads decision artifact.
-    If PROMOTE: scales v6 to 2 replicas.
-    Demonstrates pipeline-driven deployment action.
+    If PROMOTE: scales banking-agent-v6 to 2 replicas using the
+    kubernetes Python client (no kubectl binary needed).
     """
-    import json, subprocess
+    import json
+    from kubernetes import client, config
 
     with open(decision.path) as f:
         d = json.load(f)
 
     if d.get("decision") == "PROMOTE":
         print("Promoting v6: scaling to 2 replicas...")
-        result = subprocess.run([
-            "kubectl", "scale", "deployment", "banking-agent-v6",
-            "-n", "banking-app",
-            "--replicas=2"
-        ], capture_output=True, text=True)
-        print(result.stdout)
-        if result.returncode != 0:
-            print(f"Warning: {result.stderr}")
+
+        # Load in-cluster config (works inside a Kubeflow pipeline pod)
+        config.load_incluster_config()
+        apps_v1 = client.AppsV1Api()
+
+        patch = {"spec": {"replicas": 2}}
+        resp = apps_v1.patch_namespaced_deployment(
+            name="banking-agent-v6",
+            namespace="banking-app",
+            body=patch
+        )
+        print(f"Scaled to {resp.spec.replicas} replicas ✅")
     else:
         print(f"Skipping promote — decision was: {d.get('decision')}")
+
 
 # ── PIPELINE DEFINITION ───────────────────────────────────────────────────────
 @dsl.pipeline(
@@ -227,17 +230,11 @@ def banking_agent_pipeline(
     promote_threshold_confidence: float = 0.5,
     promote_threshold_low_conf_rate: float = 0.3
 ):
-    # Step 1: Test v4
-    v4_task = test_v4_baseline(
-        v4_service_url=v4_service_url
-    )
+    # Step 1 & 2: Test v4 and v6 in PARALLEL
+    v4_task = test_v4_baseline(v4_service_url=v4_service_url)
+    v6_task = test_v6_features(v6_service_url=v6_service_url)
 
-    # Step 2: Test v6 (runs in parallel with v4 — KFP detects no dependency)
-    v6_task = test_v6_features(
-        v6_service_url=v6_service_url
-    )
-
-    # Step 3: Evaluate (depends on both v4 and v6 results)
+    # Step 3: Evaluate (waits for both)
     eval_task = evaluate_and_decide(
         v4_metrics=v4_task.outputs["output_metrics"],
         v6_metrics=v6_task.outputs["output_metrics"],
@@ -245,16 +242,15 @@ def banking_agent_pipeline(
         promote_threshold_low_conf_rate=promote_threshold_low_conf_rate
     )
 
-    # Step 4: Promote (depends on decision)
-    promote_task = promote_v6(
-        decision=eval_task.outputs["decision"]
-    )
+    # Step 4: Promote (waits for decision)
+    promote_v6(decision=eval_task.outputs["decision"])
 
-# ── COMPILE PIPELINE ──────────────────────────────────────────────────────────
+
+# ── COMPILE ───────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     from kfp import compiler
     compiler.Compiler().compile(
         pipeline_func=banking_agent_pipeline,
         package_path="banking_agent_pipeline.yaml"
     )
-    print("Pipeline compiled: banking_agent_pipeline.yaml")
+    print("✅ Pipeline compiled: banking_agent_pipeline.yaml")
