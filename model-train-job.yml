@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: risk-model-training
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: trainer
+        image: python:3.11-slim
+        command: ["sh","-c"]
+        args:
+        - |
+          pip install scikit-learn -q
+          cat <<EOF > /tmp/train.py
+          import pickle
+          from sklearn.feature_extraction.text import CountVectorizer
+          from sklearn.linear_model import LogisticRegression
+          from sklearn.pipeline import Pipeline
+          training_data = [
+              ("I lost my card", 1),
+              ("my card was stolen", 1),
+              ("fraud on my account", 1),
+              ("unauthorized transaction", 1),
+              ("what is my balance", 0),
+              ("I need a loan", 0),
+              ("hello", 0),
+              ("branch timings", 0)
+          ]
+          X = [x[0] for x in training_data]
+          y = [x[1] for x in training_data]
+          model = Pipeline([
+              ("vectorizer", CountVectorizer()),
+              ("classifier", LogisticRegression())
+          ])
+          model.fit(X, y)
+          with open("/model/risk_model.pkl", "wb") as f:
+              pickle.dump(model, f)
+          print("Risk model trained successfully")
+          print("Model saved to /model/risk_model.pkl")
+          EOF
+          python3 /tmp/train.py
+        volumeMounts:
+        - name: model-storage
+          mountPath: /model
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: ai-model-pvc
