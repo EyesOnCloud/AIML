@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hard-node-antiaffinity
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hard-antiaffinity
+  template:
+    metadata:
+      labels:
+        app: hard-antiaffinity
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: topology.kubernetes.io/zone
+                    operator: NotIn
+                    values:
+                      - us-east-2
+      containers:
+        - name: webapp
+          image: nginx
