@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: chat-api
-        image: eyesoncloud/chat:v4
+        image: eyesoncloud/chat-app:v4
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
