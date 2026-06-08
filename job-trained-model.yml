@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: chat-api
-        image: hussain2844/chat:v4
+        image: eyesoncloud/chat:v4
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -51,7 +51,7 @@ spec:
           periodSeconds: 10
           failureThreshold: 3
       - name: risk-api
-        image: hussain2844/risk-api:v3
+        image: eyesoncloud/risk-api:v3
         imagePullPolicy: Always
         ports:
         - containerPort: 8001
