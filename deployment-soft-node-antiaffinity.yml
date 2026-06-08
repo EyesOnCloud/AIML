@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soft-node-antiaffinity
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: zone-antiaffinity
+  template:
+    metadata:
+      labels:
+        app: zone-antiaffinity
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: topology.kubernetes.io/zone
+                    operator: NotIn
+                    values:
+                      - us-east-2
+      containers:
+        - name: nginx
+          image: nginx
