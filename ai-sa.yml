@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: chat-api-sa
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: risk-api-sa
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devops-sa
