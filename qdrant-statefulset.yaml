@@ -1,12 +1,11 @@
 apiVersion: apps/v1
 kind: StatefulSet
-
 metadata:
   name: qdrant
-
+  namespace: banking-app
 spec:
   serviceName: qdrant
-  replicas: 2
+  replicas: 1
 
   selector:
     matchLabels:
@@ -19,26 +18,20 @@ spec:
 
     spec:
       containers:
-        - name: qdrant
-          image: qdrant/qdrant
-
-          ports:
-            - containerPort: 6333
-
-          volumeMounts:
-            - name: qdrant-storage
-              mountPath: /qdrant/storage
+      - name: qdrant
+        image: qdrant/qdrant
+        ports:
+        - containerPort: 6333
+        volumeMounts:
+        - name: storage
+          mountPath: /qdrant/storage
 
   volumeClaimTemplates:
-    - metadata:
-        name: qdrant-storage
-
-      spec:
-        accessModes:
-          - ReadWriteMany
-
-        storageClassName: csi-nfs
-
-        resources:
-          requests:
-            storage: 1Gi
+  - metadata:
+      name: storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: csi-nfs
+      resources:
+        requests:
+          storage: 1Gi
