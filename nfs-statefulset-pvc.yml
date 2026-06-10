@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chat-ai-pvc
+spec:
+  storageClassName: csi-nfs
+  accessModes:
+    - ReadWriteMany  # NFS supports RWX
+  resources:
+    requests:
+      storage: 1Gi
