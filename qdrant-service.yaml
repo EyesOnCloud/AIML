@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+  namespace: banking-app
+spec:
+  clusterIP: None
+  selector:
+    app: qdrant
+  ports:
+  - port: 6333
+    targetPort: 6333
