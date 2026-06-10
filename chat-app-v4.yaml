@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-agent-v4
+  namespace: banking-app
+  labels:
+    app: banking-agent
+    version: v4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: banking-agent
+      version: v4
+  template:
+    metadata:
+      labels:
+        app: banking-agent
+        version: v4
+    spec:
+      containers:
+      - name: agent
+        image: eyesoncloud/chat-app:v4
+        ports:
+        - containerPort: 8000
+        env:
+        - name: RISK_API_URL
+          value: "http://risk-api.banking-app.svc.cluster.local:8001"
+        - name: BOT_NAME
+          value: "BankBot-v4"
+        - name: APP_ENV
+          value: "production"
+        - name: LOG_DIR
+          value: "/tmp/logs"
+        - name: MODEL_DIR
+          value: "/tmp/model"
+        - name: VECTOR_DB_URL
+          value: "http://qdrant.default.svc.cluster.local:6333"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+--
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-agent-v4
+  namespace: banking-app
+spec:
+  selector:
+    app: banking-agent
+    version: v4
+  ports:
+  - port: 8080
+    targetPort: 8000
+  type: NodePort
