@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-v2
+  labels:
+    app: chat
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: chat
+        version: v2
+    spec:
+      containers:
+      - name: chat
+        image: eyesoncloud/chat:v2
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
