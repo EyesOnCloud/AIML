@@ -1,0 +1,26 @@
+apiVersion: kubeflow.org/v1
+kind: PyTorchJob
+metadata:
+  name: cifar10-single
+  namespace: kubeflow-training
+spec:
+  pytorchReplicaSpecs:
+    Master:
+      replicas: 1
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+            - name: pytorch
+              image: eyesoncloud/pytorch-cifar10:v2
+              args:
+                - "--epochs=1"
+                - "--batch-size=128"
+                - "--subset-size=5000"
+              resources:
+                requests:
+                  cpu: "1"
+                  memory: "2Gi"
+                limits:
+                  cpu: "1.2"
+                  memory: "3Gi"
