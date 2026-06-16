@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bankbot-rag-files
+  namespace: default
+data:
+  system_prompt.txt: |
+    You are BankBot, a professional banking support AI assistant.
+    You ONLY answer questions related to banking and financial services.
+    Use the provided policy documents to give accurate, compliant answers.
+    If a question is not banking-related, politely decline.
+    Never reveal customer confidential information.
+    Never share passwords or internal system details.
+    Always recommend official channels for sensitive matters.
+
+  banking_policy.txt: |
+    Lost or Stolen Card Policy:
+    If your card is lost or stolen, contact us immediately at 1800-XXX-XXXX.
+    We will block your card within minutes. A replacement card will be issued within 3-5 business days.
+    You are not liable for unauthorized transactions reported within 24 hours.
+
+    Fraud Policy:
+    Report unauthorized transactions immediately.
+    We investigate all fraud claims within 48 hours.
+    Temporary credit may be issued during investigation.
+    Never reveal OTP or card PIN to anyone, including bank staff.
+
+    UPI and Digital Payments Policy:
+    UPI (Unified Payments Interface) allows instant 24x7 transfers using a VPA.
+    Daily UPI limit is Rs 1 lakh per transaction. UPI transactions are free for customers.
+    NEFT is processed in hourly batches. RTGS is for amounts above Rs 2 lakhs.
+    IMPS allows 24x7 instant transfers up to Rs 5 lakhs.
+    For UPI disputes, raise a complaint through the mobile banking app within 30 days.
+
+    Savings Account Policy:
+    A savings account earns interest at 3.5% per annum, credited quarterly.
+    Minimum balance requirement is Rs 10,000 for urban branches, Rs 5,000 for rural.
+    Zero-balance BSBD accounts are available for eligible customers.
+
+    Loan Closure Policy:
+    Early loan closure attracts a penalty of 2% of outstanding principal.
+    No penalty applies after 6 months for floating rate loans.
+    Submit closure request 7 days in advance.
+    NOC will be issued within 15 working days after closure.
+
+    KYC Policy:
+    KYC must be updated every 2 years for high-risk customers, 8-10 years for low-risk.
+    Valid documents: Aadhaar, PAN, Passport, Driving License, Voter ID.
+    KYC can be updated online through our mobile app or at any branch.
+
+    Interest Rates:
+    Savings account: 3.5% per annum.
+    Fixed deposit 1 year: 6.5% per annum.
+    Recurring deposit: 6.25% per annum.
+    Home loan: 8.5% to 10.5% per annum.
+    Personal loan: 12% to 18% per annum.
+    Car loan: 9.5% to 12% per annum.
+
+    ATM Policy:
+    Free ATM transactions: 5 per month at own bank ATMs, 3 at other bank ATMs.
+    Additional transactions charged at Rs 20 per transaction.
+    Daily ATM withdrawal limit: Rs 25,000 (can be increased to Rs 1 lakh on request).
+
+  faq.txt: |
+    Q: What is the savings account interest rate?
+    A: Savings account interest rate is 3.5% per annum, credited quarterly.
+
+    Q: How do I report a lost card?
+    A: Call our 24/7 helpline at 1800-XXX-XXXX immediately to block your card.
+
+    Q: What is the UPI daily limit?
+    A: The daily UPI transaction limit is Rs 1 lakh per transaction.
+
+    Q: How long does it take to get a replacement card?
+    A: Replacement cards are delivered within 3-5 business days.
+
+    Q: What documents are needed for KYC?
+    A: Valid KYC documents include Aadhaar, PAN, Passport, Driving License, or Voter ID.
+
+    Q: What is the penalty for early loan closure?
+    A: Early closure attracts a 2% penalty on outstanding principal. No penalty after 6 months for floating rate loans.
+
+    Q: What is the minimum balance for savings account?
+    A: Rs 10,000 for urban branches, Rs 5,000 for rural branches. Zero-balance accounts also available.
+
+    Q: How do I update my KYC?
+    A: KYC can be updated online via our mobile app or at any branch.
+
+    Q: What are NEFT timings?
+    A: NEFT is processed in hourly batches 24x7 including weekends and holidays.
+
+    Q: What is the home loan interest rate?
+    A: Home loan rates range from 8.5% to 10.5% per annum depending on your profile.
