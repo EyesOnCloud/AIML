@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bankbot-env
+  namespace: default
+data:
+  # ChromaDB connection
+  CHROMA_HOST: "chromadb-service"
+  CHROMA_PORT: "8000"
+  # RAG / retrieval settings
+  EMBEDDING_MODEL: "all-MiniLM-L6-v2"
+  TOP_K_RESULTS: "1"
+  CHUNK_SIZE: "500"
+  
+  BOT_NAME: "BankBot"
+  APP_ENV: "production"
+  LOG_LEVEL: "info"
+  LOG_DIR: "/data/logs"
+  MODEL_DIR: "/data/models"
+  JWT_ALGORITHM: "HS256"
+  JWT_EXPIRE: "3600"
+  RISK_API_URL: "http://risk-service:8001"
