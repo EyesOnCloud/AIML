@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: risk-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: risk-api
+  template:
+    metadata:
+      labels:
+        app: risk-api
+    spec:
+      containers:
+      - name: risk-api
+        image: hussain2844/risk-api:sc
+        ports:
+        - containerPort: 8001
+        # ConfigMap #1 — environment variables
+        envFrom:
+        - configMapRef:
+            name: bankbot-env
+        # Secret — DB credentials
+        env:
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: bankbot-secret
+              key: DB_USERNAME
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          failureThreshold: 3
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "300m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: risk-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: risk-api
+  ports:
+  - port: 8001
+    targetPort: 8001
