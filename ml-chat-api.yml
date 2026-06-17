@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-api
+  template:
+    metadata:
+      labels:
+        app: chat-api
+    spec:
+      containers:
+      - name: chat-api
+        image: eyesoncloud/chat-api:ml
+        ports:
+        - containerPort: 8000
+        env:
+        - name: CHROMA_HOST
+          value: "chromadb-service"
+        - name: CHROMA_PORT
+          value: "8000"
+        - name: RISK_API_URL
+          value: "http://risk-service:8001"
+        - name: MODEL_DIR
+          value: "/data/models"
+        - name: LOG_DIR
+          value: "/data/logs"
+        - name: APP_ENV
+          value: "production"
+        - name: BOT_NAME
+          value: "BankBot"
+        - name: JWT_SECRET
+          value: "bankbot-secret-key-2024"
+        - name: USERS_JSON
+          value: '{"admin":"admin123","user":"user123"}'
+        - name: MLFLOW_URL
+          value: "http://mlflow-service:5000"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+      volumes:
+      - name: data
+        hostPath:
+          path: /srv/bankbot-data
+          type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    app: chat-api
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30100
