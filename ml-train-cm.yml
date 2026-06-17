@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bankbot-training-data
+  namespace: default
+data:
+  data.csv: |
+    # message,label  (label: 1=high_risk, 0=low_risk)
+    I lost my debit card,1
+    my card was stolen,1
+    unauthorized transaction on my account,1
+    fraud on my account,1
+    my account is blocked,1
+    suspicious activity on my card,1
+    someone hacked my account,1
+    I did not make this transaction,1
+    my card is compromised,1
+    lost my credit card immediately need help,1
+    unauthorized access to my savings account,1
+    fraud detected on my debit card,1
+    card stolen need urgent help,1
+    account hacked need help asap,1
+    blocked card fraud transaction,1
+    someone used my card without my permission,1
+    I see a transaction I never made on my statement,1
+    my net banking password got compromised somehow,1
+    urgent please block my account right now,1
+    suspicious login attempt detected on my profile,1
+    not sure but my account seems off lately,1
+    can someone check if my card is still safe,1
+    I think something is wrong with my recent transaction,1
+    worried about a strange charge I noticed today,1
+    is there a way to verify if my account was accessed,1
+    what is my account balance,0
+    I need information about a loan,0
+    what are your banking hours,0
+    I want my account statement,0
+    what is the interest rate on savings,0
+    how do I transfer money,0
+    I want to open a new account,0
+    what are the charges for a debit card,0
+    I need help with my mortgage,0
+    how to update my KYC,0
+    what is the ATM withdrawal limit,0
+    how to apply for a credit card,0
+    what documents needed for loan,0
+    I want to close my fixed deposit,0
+    what is the minimum balance requirement,0
+    how can I get a new cheque book please,0
+    what is the procedure to add a nominee,0
+    please tell me about your home loan rates,0
+    how do I activate net banking for my account,0
+    what is the process for fixed deposit renewal,0
+    can you explain my card benefits and rewards program,0
+    I want to know my account opening date,0
+    is my account eligible for a premium card upgrade,0
+    how urgent is the KYC renewal deadline this year,0
+    my card delivery is delayed can you check status,0
