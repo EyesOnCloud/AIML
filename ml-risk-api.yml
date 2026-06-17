@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: risk-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: risk-api
+  template:
+    metadata:
+      labels:
+        app: risk-api
+    spec:
+      containers:
+      - name: risk-api
+        image: eyesoncloud/risk-api:ml
+        ports:
+        - containerPort: 8001
+        env:
+        - name: MODEL_DIR
+          value: "/data/models"
+        - name: LOG_DIR
+          value: "/data/logs"
+        - name: APP_ENV
+          value: "production"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "300m"
+            memory: "512Mi"
+      volumes:
+      - name: data
+        hostPath:
+          path: /srv/bankbot-data
+          type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: risk-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: risk-api
+  ports:
+  - port: 8001
+    targetPort: 8001
