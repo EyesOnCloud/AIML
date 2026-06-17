@@ -1,0 +1,31 @@
+IT Security Policy - TechCorp Internal
+Version 2.4, Updated January 2024
+
+VPN Policy:
+All employees must use corporate VPN when accessing company resources from home.
+VPN client: Cisco AnyConnect. Server: vpn.techcorp.com
+To reset VPN credentials: contact helpdesk@techcorp.com or call ext 4321.
+VPN sessions timeout after 8 hours of inactivity.
+
+Password Policy:
+Passwords must be minimum 12 characters, include uppercase, lowercase, number, and symbol.
+Passwords expire every 90 days. Cannot reuse last 10 passwords.
+Multi-factor authentication (MFA) is mandatory for all cloud service access.
+
+Data Classification:
+- Public: Marketing materials, job postings
+- Internal: Project documents, meeting notes
+- Confidential: Customer data, financial records, source code
+Customer data must NEVER be stored on personal devices or personal cloud storage.
+
+Cloud Resource Access:
+To request AWS access: submit ticket in ServiceNow with manager approval.
+AWS access provisioned within 2 business days after approval.
+All AWS access reviewed quarterly. Unused access revoked automatically after 30 days.
+
+Leave Policy:
+Annual leave: 20 days per year, accrued monthly.
+Sick leave: 10 days per year, no carryover.
+Maternity leave: 26 weeks fully paid.
+Paternity leave: 4 weeks fully paid.
+Leave requests must be submitted in HR portal minimum 2 weeks in advance for planned leave.
