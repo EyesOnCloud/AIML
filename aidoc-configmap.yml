@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smartdoc-config
+  namespace: smartdoc
+data:
+  APP_NAME: "SmartDoc AI"
+  APP_ENV: "lab"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+
+  # Database
+  POSTGRES_DB: "smartdocdb"
+  POSTGRES_USER: "smartdoc"
+  DATABASE_URL: "postgresql+asyncpg://smartdoc:smartdoc123@postgres-service:5432/smartdocdb"
+
+  # ChromaDB
+  CHROMA_HOST: "chromadb-service"
+  CHROMA_PORT: "8001"
+  CHROMA_COLLECTION_NAME: "smartdoc_knowledge"
+
+  # ── LLM PROVIDER SWITCH ──────────────────────────────
+  # Set to "ollama" for free local inference (lab use)
+  # Set to "anthropic" for cloud inference (needs API key)
+  LLM_PROVIDER: "ollama"
+
+  # Ollama — local, free, no key
+  OLLAMA_BASE_URL: "http://ollama-service:11434"
+  OLLAMA_MODEL: "llama3.2:1b"
+
+  # Anthropic — only used when LLM_PROVIDER=anthropic
+  ANTHROPIC_MODEL: "claude-3-haiku-20240307"
+
+  # Shared
+  MAX_TOKENS: "256"
+  TEMPERATURE: "0.7"
+
+  # RAG
+  RAG_ENABLED: "true"
+  RAG_TOP_K: "3"
+  RAG_SIMILARITY_THRESHOLD: "0.6"
+
+  ALLOWED_ORIGINS: '["http://localhost:80","http://frontend-service:80"]'
