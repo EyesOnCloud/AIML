@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bankbot-training
+  namespace: default
+spec:
+  completions: 1
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: trainer
+        image: eyesoncloud/ai-risk-trainer:ml
+        imagePullPolicy: Always
+        env:
+        - name: MLFLOW_URL
+          value: "http://mlflow-service:5000"
+        - name: MLFLOW_EXPERIMENT
+          value: "bankbot-risk-model"
+        - name: MODEL_DIR
+          value: "/data/models"
+        - name: LOG_DIR
+          value: "/data/logs"
+        - name: TRAINING_DATA_FILE
+          value: "/app/training-data/data.csv"
+        - name: NOISE_SEED
+          value: "3"
+        - name: NOISE_SCALE
+          value: "0.12"
+        - name: TEST_SIZE
+          value: "0.25"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: training-data
+          mountPath: /app/training-data
+          readOnly: true
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+      volumes:
+      - name: data
+        hostPath:
+          path: /srv/bankbot-data
+          type: DirectoryOrCreate
+      - name: training-data
+        configMap:
+          name: bankbot-training-data
