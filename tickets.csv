@@ -1,0 +1,61 @@
+text,priority
+"Server is completely down, all customers affected, revenue impact",critical
+"Production database not responding, urgent fix needed now",critical
+"Security breach detected, customer data potentially exposed",critical
+"Payment processing system is offline, losing sales right now",critical
+"Entire application crashed, nobody can log in",critical
+"Data loss reported, backup restoration needed immediately",critical
+"Ransomware detected on production servers",critical
+"Customer cannot complete checkout, blocking all purchases",critical
+"API gateway returning 500 errors for all requests",critical
+"Authentication service down, no users can sign in",critical
+"My password reset email did not arrive after 10 minutes",medium
+"Dashboard loading slowly during peak hours",medium
+"Export to CSV feature stopped working yesterday",medium
+"Notification emails are delayed by a few hours",medium
+"Search results are missing some items intermittently",medium
+"Mobile app crashes occasionally when uploading large files",medium
+"Report generation taking longer than usual",medium
+"Some images not loading on product pages",medium
+"Filter options not saving between sessions",medium
+"Calendar sync delayed by a few minutes",medium
+"Could you add a dark mode option in settings",low
+"Requesting documentation update for new API endpoint",low
+"Feature suggestion: allow bulk export of reports",low
+"Minor typo found on the about us page",low
+"Would like to request a demo of the new dashboard",low
+"Asking about upcoming roadmap features",low
+"General question about pricing tiers",low
+"Suggestion to improve onboarding tutorial",low
+"Curious if there's a dark theme planned",low
+"Just wanted to say the new UI looks great",low
+"Cannot reset my password, link expired immediately",high
+"Invoice shows incorrect billing amount this month",high
+"Two-factor authentication not sending codes",high
+"User permissions not updating after role change",high
+"Integration with Slack stopped sending alerts",high
+"Bulk upload feature failing for files over 5MB",high
+"Customer account incorrectly suspended without warning",high
+"Email notifications sending duplicate messages",high
+"API rate limit hit unexpectedly during normal usage",high
+"SSO login redirect loop preventing access",high
+"Complete outage across all regions, customers locked out",critical
+"Database corruption detected, immediate attention required",critical
+"All API endpoints returning timeout errors",critical
+"Critical vulnerability found, needs emergency patch",critical
+"Payment gateway down, no transactions processing",critical
+"User wants to know how to change their email address",low
+"Asking if there is a mobile app available",low
+"Wondering about refund policy details",low
+"Question about data retention period",low
+"Requesting a feature comparison sheet",low
+"Login page taking 10 seconds to load consistently",medium
+"Profile picture upload fails for png files",medium
+"Timezone setting not applying correctly",medium
+"Search autocomplete showing outdated results",medium
+"Weekly digest email arriving on wrong day",medium
+"Account locked after failed login attempts, need unlock",high
+"Webhook deliveries failing intermittently for orders",high
+"Subscription renewal charged wrong amount",high
+"Admin panel access revoked unexpectedly",high
+"Export feature missing required fields in output",high
