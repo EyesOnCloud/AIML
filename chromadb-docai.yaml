@@ -76,4 +76,4 @@ spec:
   ports:
     - port: 8001       # External port backend uses
       targetPort: 8000 # ChromaDB internal port
-  type: ClusterIP
+  type: NodePort
