@@ -13,3 +13,5 @@ spec:
       env:
         - name: MODEL_VERSION
           value: "v99"
+        - name: METRICS_SOURCE
+          value: "prometheus://monitoring.svc:9090"
