@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: health-classifier-badimage
+  labels:
+    app: health-classifier
+spec:
+  containers:
+    - name: health-classifier
+      image: eyesoncloud/health-classifier:v99   # tag was never built/pushed
+      ports:
+        - containerPort: 5000
+      env:
+        - name: MODEL_VERSION
+          value: "v99"
