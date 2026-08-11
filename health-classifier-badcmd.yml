@@ -12,3 +12,9 @@ spec:
       args: ["-b", "0.0.0.0:5000", "src.app:app"]
       ports:
         - containerPort: 5000
+      env:
+        - name: MODEL_VERSION
+          value: "v1"
+        - name: METRICS_SOURCE
+          value: "prometheus://monitoring.svc:9090"
+
