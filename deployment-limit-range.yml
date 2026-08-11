@@ -1,23 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  test-limits
+  name:  limit-test
   namespace: eoc-namespace
   labels:
-    app:  test-limits
+    app:  limit-label
 spec:
   selector:
     matchLabels:
-      app: test-limits
+      app: limit-label
   replicas: 1
   template:
     metadata:
       labels:
-        app: test-limits
+        app: limit-label
     spec:
       containers:
       - name:  chat-api
         image:  eyesoncloud/chat:v1
-        resources:
-          limits:
-            memory: "1Gi"
