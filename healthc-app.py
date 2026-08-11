@@ -6,12 +6,15 @@ import logging
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO").upper())
 logger = logging.getLogger("health-classifier")
 
+# Required at startup - simulates a real dependency (e.g. metrics source config)
+METRICS_SOURCE = os.environ["METRICS_SOURCE"]   # raises KeyError + exits if missing
+
 app = Flask(__name__)
 MODEL_VERSION = os.environ.get("MODEL_VERSION", "v1")
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "healthy", "model_version": MODEL_VERSION})
+    return jsonify({"status": "healthy", "model_version": MODEL_VERSION, "metrics_source": METRICS_SOURCE})
 
 @app.route("/predict", methods=["POST"])
 def predict_route():
